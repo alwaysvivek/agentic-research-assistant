@@ -13,9 +13,9 @@ In this course, you'll dive into following concepts in AI engineering:
 
 For this you will be using the following tools:
 
-| **Week** | **Content** | **Lectures** | **Exercise** |
-| -------- | ----------- | ------------ | ------------ |
-| 1        |             | 00-04        | 0            |
-| 2        |             |              | 1            |
-| 3        |             |              | 2            |
-| 4        |             |              |              |
+| **Week** | **Content**                                | **Lectures** | **Exercise** |
+| -------- | ------------------------------------------ | ------------ | ------------ |
+| 1        | intro to AI, LLM, gemini API, pydantic     | 00-04        | 0            |
+| 2        | pydantic with gemini, fastapi              | 05-06        | 1            |
+| 3        | pydanticai, chatbot, vector database, rags | 07-09        | lab          |
+| 4        | deploy to azure, work with lab             | 10           | lab          |
