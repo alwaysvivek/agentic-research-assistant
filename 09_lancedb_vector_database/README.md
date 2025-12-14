@@ -4,8 +4,14 @@
   <img src="https://github.com/kokchun/assets/blob/main/ai_engineering/lancedb_tutorial.png?raw=true" alt="pydantic for data validation" width="600">
 </a>
 
-
 ## Read more
-- [pydantic docs](https://docs.pydantic.dev/latest/)
+
+- [lancedb docs](https://lancedb.com/docs/)
+- [lancedb quickstart](https://lancedb.com/docs/quickstart/)
+- [lancedb working with tables](https://lancedb.com/docs/tables/)
+- [lancedb vector search](https://lancedb.com/docs/search/vector-search/)
+- [lancedb embeddings](https://lancedb.com/docs/embedding/)
+- [lancedb reranking](https://lancedb.com/docs/reranking/)
+- [lancedb hybrid search](https://lancedb.com/docs/search/hybrid-search/)
 
 ## Other videos
