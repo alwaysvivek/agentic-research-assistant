@@ -5,6 +5,13 @@
 </a>
 
 
+## Setup
+
+```bash
+uv add pydantic-ai
+```
+
+
 ## Read more
 - [pydantic docs](https://docs.pydantic.dev/latest/)
 
