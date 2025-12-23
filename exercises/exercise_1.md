@@ -18,7 +18,8 @@ e) Test out your API using requests inside of a Jupyter notebook or a separate P
 
 ## 1. PydanticAI fundamentals
 
-Make a PydanticAI model that can take an input of a location and then it should suggest 5 restaurants nearby that place. The restaurant model should have 
+Make a PydanticAI model that can take an input of a location and then it should suggest 5 restaurants nearby that place. The restaurant model should have
+
 - name
 - type of food (cuisine)
 - price level
@@ -29,30 +30,47 @@ Make a PydanticAI model that can take an input of a location and then it should 
 
 It's okay if your model is making up a restaurant that doesn't exist
 
-
 ## 2. FastAPI to serve PydanticAI
 
-Now make a fastapi with a post endpoint in natural language to prompt for a location and what type of food. Based on these it should generate a restaurant and store it in a duckdb database. 
+Now make a fastapi with a post endpoint in natural language to prompt for a location and what type of food. Based on these it should generate a restaurant and store it in a duckdb database.
 
-Also implement a get endpoint for showing all restaurants in the database. 
+Also implement a get endpoint for showing all restaurants in the database.
 
-## 4. Theory questions
+## 3. Theory questions
 
-a)
+a) What is FastAPI and why is it popular for building APIs?
 
-b)
+b) What is the role of a Pydantic model in a FastAPI application?
+
+c) How does FastAPI automatically generate documentation?
+
+d) What is an endpoint, and what are GET and POST methods?
+
+e) What problem does PydanticAI solve when using LLMs?
+
+f) How can FastAPI be used to serve PydanticAI? Give an example
+
+g) Why is PydanticAI’s validated output better than plain-text LLM responses?
 
 ## Glossary
 
 Fill in this table either by copying this into your own markdown file or copy it into a spreadsheet if you feel that is easier to work with.
 
-| terminology | explanation |
-| ----------- | ----------- |
-|             |             |
-|             |             |
-|             |             |
-|             |             |
-|             |             |
-|             |             |
-|             |             |
-|             |             |
+| terminology          | explanation |
+| -------------------- | ----------- |
+| fastapi              |             |
+| endpoint             |             |
+| route                |             |
+| query                |             |
+| field                |             |
+| dependency injection |             |
+| request body         |             |
+| response model       |             |
+| pydantic model       |             |
+| swagger ui           |             |
+| agent                |             |
+| output_type          |             |
+|                      |             |
+|                      |             |
+|                      |             |
+|                      |             |
