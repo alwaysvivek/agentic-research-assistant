@@ -1,7 +1,7 @@
 # Deploy RAG FastAPI to Azure Function (serverless)
 
-<a href="" target="_blank">
-  <img src="https://github.com/kokchun/assets/blob/main/python_videos/pydantic_ai_practical.png?raw=true" alt="pydantic for data validation" width="600">
+<a href="https://youtu.be/ww1SqEyf45s" target="_blank">
+  <img src="https://github.com/kokchun/assets/blob/main/ai_engineering/rag_function_app.png?raw=true" alt="deploy rag to function app" width="600">
 </a>
 
 ## Setup
@@ -83,7 +83,6 @@ Name your function to something descriptive
 Use FUNCTION as authorization level as we don't want the API to be available without API key
 
 <img src = "https://github.com/kokchun/assets/blob/main/azure/local_function_5.png?raw=true" alt="Create Azure Function" width="300">
-
 
 ## Continuation
 
