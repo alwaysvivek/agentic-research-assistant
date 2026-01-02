@@ -1,6 +1,5 @@
 # AI engineering four weeks course
 
-
 In this course, you'll dive into following concepts in AI engineering:
 
 - AI intro, history
@@ -14,12 +13,9 @@ In this course, you'll dive into following concepts in AI engineering:
 
 For this you will be using the following tools:
 
-
 | **Week** | **Content** | **Lectures** | **Exercise** |
 | -------- | ----------- | ------------ | ------------ |
 | 1        |             | 00-04        | 0            |
 | 2        |             |              | 1            |
 | 3        |             |              | 2            |
-| 4        |             |              | 3            |
-
-
+| 4        |             |              |              |
