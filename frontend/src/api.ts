@@ -1,32 +1,59 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
-const API_URL = 'http://localhost:8000/api';
+// Use environment variable or default to localhost
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-export interface ResearchResponse {
-    answer: string;
-    confidence_score: number;
-    source_chunk_ids: string[];
-}
+const api = axios.create({
+    baseURL: `${API_URL}/api`,
+    timeout: 60000, // 60 second timeout for long-running operations
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
 
-export const api = {
-    ingest: async (source: string) => {
-        const response = await axios.post(`${API_URL}/ingest`, { source });
-        return response.data;
-    },
-    ingestText: async (text: string) => {
-        const response = await axios.post(`${API_URL}/ingest/text`, { text });
-        return response.data;
-    },
-    ingestFile: async (file: File) => {
-        const formData = new FormData();
-        formData.append('file', file);
-        const response = await axios.post(`${API_URL}/ingest/file`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        return response.data;
-    },
-    research: async (query: string) => {
-        const response = await axios.post<ResearchResponse>(`${API_URL}/research`, { query });
-        return response.data;
+// Add response interceptor for better error handling
+api.interceptors.response.use(
+    (response) => response,
+    (error: AxiosError) => {
+        if (error.response) {
+            // Server responded with error status
+            const detail = (error.response.data as any)?.detail || error.message;
+            throw new Error(detail);
+        } else if (error.request) {
+            // Request made but no response
+            throw new Error('No response from server. Please check your connection.');
+        } else {
+            // Something else happened
+            throw new Error(error.message || 'An unexpected error occurred');
+        }
     }
+);
+
+export const ingest = async (source: string) => {
+    const response = await api.post('/ingest', { source });
+    return response.data;
 };
+
+export const ingestText = async (text: string) => {
+    const response = await api.post('/ingest/text', { text });
+    return response.data;
+};
+
+export const ingestFile = async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post('/ingest/file', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+        timeout: 120000, // 2 minutes for file upload
+    });
+    return response.data;
+};
+
+export const research = async (query: string) => {
+    const response = await api.post('/research', { query });
+    return response.data;
+};
+
+export default { ingest, ingestText, ingestFile, research };

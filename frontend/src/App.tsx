@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { api } from './api';
+import React, { useState, Component, ErrorInfo, ReactNode } from 'react';
+import * as api from './api';
 import { Send, Upload, BookOpen, CheckCircle, AlertCircle, Loader2, Link, FileText, Type } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import clsx from 'clsx';
@@ -16,10 +16,12 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [ingesting, setIngesting] = useState(false);
   const [ingestStatus, setIngestStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [ingestError, setIngestError] = useState<string>('');
 
   const handleIngest = async () => {
     setIngesting(true);
     setIngestStatus('idle');
+    setIngestError('');
     try {
       if (ingestMode === 'url' && urlSource) {
         await api.ingest(urlSource);
@@ -41,6 +43,8 @@ function App() {
     } catch (error) {
       console.error(error);
       setIngestStatus('error');
+      setIngestError(error instanceof Error ? error.message : 'Failed to ingest content');
+      setTimeout(() => setIngestError(''), 5000);
     } finally {
       setIngesting(false);
     }
@@ -70,7 +74,12 @@ function App() {
         sources: result.source_chunk_ids
       }]);
     } catch (error) {
-      setMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I encountered an error while researching." }]);
+      console.error('Research error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: `Sorry, I encountered an error: ${errorMessage}`
+      }]);
     } finally {
       setLoading(false);
     }
@@ -159,8 +168,11 @@ function App() {
                 </div>
               )}
               {ingestStatus === 'error' && (
-                <div className="flex items-center gap-2 text-red-600 text-xs font-medium animate-in fade-in slide-in-from-top-1">
-                  <AlertCircle className="w-3 h-3" /> Failed to ingest
+                <div className="flex flex-col gap-1 text-red-600 text-xs font-medium animate-in fade-in slide-in-from-top-1">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-3 h-3" /> Failed to ingest
+                  </div>
+                  {ingestError && <p className="text-xs opacity-80">{ingestError}</p>}
                 </div>
               )}
             </div>
@@ -186,8 +198,8 @@ function App() {
             {messages.map((msg, idx) => (
               <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[85%] rounded-2xl p-4 ${msg.role === 'user'
-                    ? 'bg-blue-600 text-white rounded-br-none'
-                    : 'bg-gray-100 text-gray-800 rounded-bl-none'
+                  ? 'bg-blue-600 text-white rounded-br-none'
+                  : 'bg-gray-100 text-gray-800 rounded-bl-none'
                   }`}>
                   <div className="prose prose-sm max-w-none">
                     {msg.role === 'assistant' ? <ReactMarkdown>{msg.content}</ReactMarkdown> : msg.content}
