@@ -1,10 +1,11 @@
-import React, { useState, Component, ErrorInfo, ReactNode } from 'react';
+import { useState, useEffect } from 'react';
 import * as api from './api';
-import { Send, Upload, BookOpen, CheckCircle, AlertCircle, Loader2, Link, FileText, Type } from 'lucide-react';
+import { Send, Upload, BookOpen, CheckCircle, AlertCircle, Loader2, Link, FileText, Type, Key } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import clsx from 'clsx';
 
 function App() {
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem('gemini_api_key') || '');
   const [ingestMode, setIngestMode] = useState<'url' | 'file' | 'text'>('url');
 
   const [urlSource, setUrlSource] = useState('');
@@ -18,17 +19,26 @@ function App() {
   const [ingestStatus, setIngestStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [ingestError, setIngestError] = useState<string>('');
 
+  useEffect(() => {
+    localStorage.setItem('gemini_api_key', apiKey);
+  }, [apiKey]);
+
   const handleIngest = async () => {
+    if (!apiKey) {
+      setIngestStatus('error');
+      setIngestError('Please enter your Gemini API Key first.');
+      return;
+    }
     setIngesting(true);
     setIngestStatus('idle');
     setIngestError('');
     try {
       if (ingestMode === 'url' && urlSource) {
-        await api.ingest(urlSource);
+        await api.ingest(urlSource, apiKey);
       } else if (ingestMode === 'text' && textSource) {
-        await api.ingestText(textSource);
+        await api.ingestText(textSource, apiKey);
       } else if (ingestMode === 'file' && fileSource) {
-        await api.ingestFile(fileSource);
+        await api.ingestFile(fileSource, apiKey);
       } else {
         return; // nothing to ingest
       }
@@ -51,6 +61,7 @@ function App() {
   };
 
   const isIngestDisabled = () => {
+    if (!apiKey) return true;
     if (ingesting) return true;
     if (ingestMode === 'url') return !urlSource;
     if (ingestMode === 'text') return !textSource;
@@ -59,14 +70,14 @@ function App() {
   }
 
   const handleResearch = async () => {
-    if (!query) return;
+    if (!query || !apiKey) return;
     setLoading(true);
     setMessages(prev => [...prev, { role: 'user', content: query }]);
     const currentQuery = query;
     setQuery('');
 
     try {
-      const result = await api.research(currentQuery);
+      const result = await api.research(currentQuery, apiKey);
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: result.answer,
@@ -89,11 +100,25 @@ function App() {
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-3">
-          <BookOpen className="w-6 h-6 text-blue-600" />
-          <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Reliable Researcher
-          </h1>
+        <div className="max-w-5xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <BookOpen className="w-6 h-6 text-blue-600" />
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              Reliable Researcher
+            </h1>
+          </div>
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <div className="relative flex-1 md:w-64">
+              <Key className="absolute left-2 top-2.5 w-4 h-4 text-gray-400" />
+              <input
+                type="password"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder="Enter Gemini API Key"
+                className="w-full pl-8 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+          </div>
         </div>
       </header>
 
@@ -104,8 +129,15 @@ function App() {
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Knowledge Base</h2>
 
+            {!apiKey && (
+              <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+                <AlertCircle className="w-4 h-4 mb-1" />
+                Please enter your Gemini API Key in the top right to get started.
+              </div>
+            )}
+
             {/* Tabs */}
-            <div className="flex bg-gray-100 p-1 rounded-lg mb-4">
+            <div className={`flex bg-gray-100 p-1 rounded-lg mb-4 ${!apiKey ? 'opacity-50 pointer-events-none' : ''}`}>
               <button onClick={() => setIngestMode('url')} className={clsx("flex-1 py-1.5 rounded-md text-xs font-medium transition-all flex justify-center", ingestMode === 'url' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700')}>
                 <Link className="w-4 h-4" />
               </button>
@@ -117,7 +149,7 @@ function App() {
               </button>
             </div>
 
-            <div className="space-y-3">
+            <div className={`space-y-3 ${!apiKey ? 'opacity-50 pointer-events-none' : ''}`}>
               {ingestMode === 'url' && (
                 <input
                   type="text"
@@ -191,6 +223,7 @@ function App() {
                 <div>
                   <h3 className="text-lg font-medium text-gray-900">Ready to Research</h3>
                   <p className="text-sm mt-1">Ingest a URL, PDF, or Text to get started.</p>
+                  {!apiKey && <p className="text-xs text-amber-600 mt-2">Requires API Key</p>}
                 </div>
               </div>
             )}
@@ -233,12 +266,13 @@ function App() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleResearch()}
-                placeholder="Ask a question based on your documents..."
-                className="w-full pl-4 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm"
+                placeholder={apiKey ? "Ask a question based on your documents..." : "Enter API Key to start..."}
+                disabled={!apiKey}
+                className="w-full pl-4 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm disabled:bg-gray-50"
               />
               <button
                 onClick={handleResearch}
-                disabled={loading || !query}
+                disabled={loading || !query || !apiKey}
                 className="absolute right-2 p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
               >
                 <Send className="w-4 h-4" />
