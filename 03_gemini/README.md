@@ -13,11 +13,11 @@
 <br/>
 <br/>
 
-**part 2 - Gemini api intro**
+**part 2 - Working with Gemini API**
 
-<!-- <a href="https://youtu.be/yeRYOJyi7_c" target="_blank">
+<a href="https://www.youtube.com/watch?v=DiW674nO9gs" target="_blank">
   <img src="https://github.com/kokchun/assets/blob/main/python_videos/pydantic.png?raw=true" alt="pydantic for data validation" width="600">
-</a> -->
+</a>
 
 
 
