@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import * as api from './api';
-import { Send, Upload, BookOpen, CheckCircle, AlertCircle, Loader2, Link, FileText, Type, Key } from 'lucide-react';
+import { Send, Upload, BookOpen, CheckCircle, AlertCircle, Loader2, Link, FileText, Type, Key, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import clsx from 'clsx';
 
 function App() {
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem('gemini_api_key') || '');
-  const [ingestMode, setIngestMode] = useState<'url' | 'file' | 'text'>('url');
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem('api_key') || '');
+  const [showKeyModal, setShowKeyModal] = useState(!apiKey);
+  const [tempKey, setTempKey] = useState('');
 
+  const [ingestMode, setIngestMode] = useState<'url' | 'file' | 'text'>('url');
   const [urlSource, setUrlSource] = useState('');
   const [textSource, setTextSource] = useState('');
   const [fileSource, setFileSource] = useState<File | null>(null);
@@ -20,13 +22,23 @@ function App() {
   const [ingestError, setIngestError] = useState<string>('');
 
   useEffect(() => {
-    localStorage.setItem('gemini_api_key', apiKey);
+    if (apiKey) {
+      localStorage.setItem('api_key', apiKey);
+      setShowKeyModal(false);
+    } else {
+      setShowKeyModal(true);
+    }
   }, [apiKey]);
+
+  const handleSaveKey = () => {
+    if (tempKey.trim()) {
+      setApiKey(tempKey.trim());
+    }
+  };
 
   const handleIngest = async () => {
     if (!apiKey) {
-      setIngestStatus('error');
-      setIngestError('Please enter your Gemini API Key first.');
+      setShowKeyModal(true);
       return;
     }
     setIngesting(true);
@@ -98,6 +110,39 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
+      {/* API Key Modal */}
+      {showKeyModal && !apiKey && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-in zoom-in-95">
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                <Key className="w-6 h-6" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">Enter API Key</h2>
+              <p className="text-gray-500 text-sm">
+                This application requires a Groq API Key to function.
+                Your key is stored locally in your browser.
+              </p>
+              <input
+                type="password"
+                value={tempKey}
+                onChange={(e) => setTempKey(e.target.value)}
+                placeholder="gsk_..."
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-center font-mono"
+                autoFocus
+              />
+              <button
+                onClick={handleSaveKey}
+                disabled={!tempKey.trim()}
+                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Start Researching
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
@@ -107,16 +152,12 @@ function App() {
               Reliable Researcher
             </h1>
           </div>
-          <div className="flex items-center gap-2 w-full md:w-auto">
-            <div className="relative flex-1 md:w-64">
-              <Key className="absolute left-2 top-2.5 w-4 h-4 text-gray-400" />
-              <input
-                type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="Enter Gemini API Key"
-                className="w-full pl-8 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-              />
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-200 transition-colors"
+              onClick={() => { setTempKey(''); setApiKey(''); }}>
+              <span className="w-2 h-2 rounded-full bg-green-500"></span>
+              API Key Active
+              <X className="w-3 h-3 ml-1" />
             </div>
           </div>
         </div>
@@ -129,15 +170,8 @@ function App() {
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Knowledge Base</h2>
 
-            {!apiKey && (
-              <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
-                <AlertCircle className="w-4 h-4 mb-1" />
-                Please enter your Gemini API Key in the top right to get started.
-              </div>
-            )}
-
             {/* Tabs */}
-            <div className={`flex bg-gray-100 p-1 rounded-lg mb-4 ${!apiKey ? 'opacity-50 pointer-events-none' : ''}`}>
+            <div className={`flex bg-gray-100 p-1 rounded-lg mb-4`}>
               <button onClick={() => setIngestMode('url')} className={clsx("flex-1 py-1.5 rounded-md text-xs font-medium transition-all flex justify-center", ingestMode === 'url' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700')}>
                 <Link className="w-4 h-4" />
               </button>
@@ -149,7 +183,7 @@ function App() {
               </button>
             </div>
 
-            <div className={`space-y-3 ${!apiKey ? 'opacity-50 pointer-events-none' : ''}`}>
+            <div className={`space-y-3`}>
               {ingestMode === 'url' && (
                 <input
                   type="text"
@@ -223,7 +257,6 @@ function App() {
                 <div>
                   <h3 className="text-lg font-medium text-gray-900">Ready to Research</h3>
                   <p className="text-sm mt-1">Ingest a URL, PDF, or Text to get started.</p>
-                  {!apiKey && <p className="text-xs text-amber-600 mt-2">Requires API Key</p>}
                 </div>
               </div>
             )}
@@ -266,7 +299,7 @@ function App() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleResearch()}
-                placeholder={apiKey ? "Ask a question based on your documents..." : "Enter API Key to start..."}
+                placeholder="Ask a question based on your documents..."
                 disabled={!apiKey}
                 className="w-full pl-4 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm disabled:bg-gray-50"
               />
