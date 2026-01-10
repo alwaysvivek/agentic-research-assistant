@@ -42,7 +42,7 @@ Reliable Researcher is an AI application that combines **Retrieval-Augmented Gen
 
 1. **Clone & Build**
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/alwaysvivek/agentic-research-assistant.git
    cd agentic-research-assistant
    
    # Build and start the services
