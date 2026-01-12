@@ -18,7 +18,7 @@ e) Test out your API using requests inside of a Jupyter notebook or a separate P
 
 ## 1. PydanticAI fundamentals
 
-Make a PydanticAI model that can take an input of a location and then it should suggest a nice restaurant nearby that place. The restaurant model should have 
+Make a PydanticAI model that can take an input of a location and then it should suggest 5 restaurants nearby that place. The restaurant model should have 
 - name
 - type of food (cuisine)
 - price level
