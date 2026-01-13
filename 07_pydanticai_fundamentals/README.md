@@ -9,11 +9,9 @@
 
 **b) PydanticAI FastAPI application**
 
-TODO: video
-
-<!-- <a href="" target="_blank">
-  <img src="https://github.com/kokchun/assets/blob/main/python_videos/pydantic_ai_practical.png?raw=true" alt="pydantic for data validation" width="600">
-</a> -->
+<a href="https://youtu.be/mp650k5T2T8" target="_blank">
+  <img src="https://github.com/kokchun/assets/blob/main/ai_engineering/fastapi_pydanticai.png?raw=true" alt="pydantic for data validation" width="600">
+</a>
 
 
 ## Setup
