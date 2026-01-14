@@ -36,7 +36,11 @@ Now make a fastapi with a post endpoint in natural language to prompt for a loca
 
 Also implement a get endpoint for showing all restaurants in the database.
 
-## 3. Theory questions
+## 3. Extend Books API 
+
+Add a post endpoint to 06_fast_api_crud that can take a natural language prompt, which will create a new book. 
+
+## 4. Theory questions
 
 a) What is FastAPI and why is it popular for building APIs?
 
