@@ -1,9 +1,7 @@
-# Retrieval-Augmented Generation (RAGs) with PydanticAI
+# Fullstack Retrieval-Augmented Generation (RAGs) with PydanticAI, LanceDB, FastAPI and Streamlit
 
-- fastapi
-- lancedb
-- pydanticai
-- chat with documents
+We will create a RAG application where the user can ask question about a knowledge base. The knowledge base consist of some wikipedia articles about different dwarf rabbits. I have downloaded the articles in pdfs.
+
 
 <a href="" target="_blank">
   <img src="https://github.com/kokchun/assets/blob/main/python_videos/pydantic_ai_practical.png?raw=true" alt="pydantic for data validation" width="600">
