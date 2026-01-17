@@ -1,21 +1,38 @@
-# AI engineering four weeks course
+# Reliable Researcher - Fullstack AI Application
 
-In this course, you'll dive into following concepts in AI engineering:
+A production-grade Agentic RAG application that researches topics by ingesting content (URLs/PDFs) and using a self-correcting LangGraph workflow to generate reliable answers.
 
-- AI intro, history
-- Machine Learning (ML) concepts
-- Data validation with Pydantic
-- Serving AI models with FastAPI
-- Create retrieval Augmented Generation (RAG) systems
-<!-- - Building AI agents
-- Building conversational AI systems -->
-- Deploying AI applications with Azure Functions and Web Apps
+## Features
+- **Fullstack Architecture**: FastAPI Backend + React/Vite Frontend.
+- **Agentic Workflow**: Uses LangGraph for Retrieve-Grade-Generate loops.
+- **Local Vector DB**: LanceDB for efficient, serverless embedding storage.
+- **Beautiful UI**: Modern, responsive interface built with Tailwind CSS.
 
-For this you will be using the following tools:
+## Structure
+- `backend/`: FastAPI application handling ingestion, RAG, and Agent logic.
+- `frontend/`: React application for user interaction.
+- `course_archive/`: Archived course materials.
 
-| **Week** | **Content**                                | **Lectures** | **Exercise** |
-| -------- | ------------------------------------------ | ------------ | ------------ |
-| 1        | intro to AI, LLM, gemini API, pydantic     | 00-04        | 0            |
-| 2        | pydantic with gemini, fastapi, pydanticai  | 05-07        | 1            |
-| 3        | pydanticai, chatbot, vector database, rags | 07-09        | lab          |
-| 4        | deploy to azure, work with lab             | 10           | lab          |
+## Quick Start
+
+### Prerequisites
+- Python 3.11+
+- Node.js 18+
+- Google API Key (in `.env`)
+
+### 1. Backend Setup
+```bash
+cd backend
+pip install -r pyproject.toml # or install dependencies manually
+# Ensure .env is present in root or backend with GOOGLE_API_KEY
+uvicorn app.main:app --reload
+```
+
+### 2. Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open [http://localhost:5173](http://localhost:5173) to use the app.
