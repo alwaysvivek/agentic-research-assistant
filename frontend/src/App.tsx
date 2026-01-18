@@ -34,11 +34,11 @@ function App() {
     setIngestError('');
     try {
       if (ingestMode === 'url' && urlSource) {
-        await api.ingest(urlSource, apiKey);
+        await api.ingest(urlSource);
       } else if (ingestMode === 'text' && textSource) {
-        await api.ingestText(textSource, apiKey);
+        await api.ingestText(textSource);
       } else if (ingestMode === 'file' && fileSource) {
-        await api.ingestFile(fileSource, apiKey);
+        await api.ingestFile(fileSource);
       } else {
         return; // nothing to ingest
       }
