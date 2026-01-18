@@ -1,6 +1,6 @@
 # Multi-stage build for production deployment
 # Stage 1: Build frontend
-FROM node:18-alpine AS frontend-builder
+FROM node:20-alpine AS frontend-builder
 
 WORKDIR /app/frontend
 
@@ -24,6 +24,7 @@ WORKDIR /app
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
+    libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy backend files

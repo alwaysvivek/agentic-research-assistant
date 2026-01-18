@@ -1,7 +1,7 @@
 import axios, { AxiosError } from 'axios';
 
 // Use environment variable or default to localhost
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:8000');
 
 const api = axios.create({
     baseURL: `${API_URL}/api`,
@@ -29,7 +29,19 @@ api.interceptors.response.use(
     }
 );
 
+// Helper to get config with headers
+// Helper to get config with headers
+const getConfig = (apiKey?: string) => {
+    if (!apiKey) return {};
+    return {
+        headers: {
+            'x-groq-api-key': apiKey
+        }
+    };
+};
+
 export const ingest = async (source: string) => {
+    // Ingest is local, no API key needed
     const response = await api.post('/ingest', { source });
     return response.data;
 };
@@ -42,17 +54,21 @@ export const ingestText = async (text: string) => {
 export const ingestFile = async (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
+
+    // No API key needed for file ingest
+    const headers = {
+        'Content-Type': 'multipart/form-data',
+    };
+
     const response = await api.post('/ingest/file', formData, {
-        headers: {
-            'Content-Type': 'multipart/form-data',
-        },
+        headers,
         timeout: 120000, // 2 minutes for file upload
     });
     return response.data;
 };
 
-export const research = async (query: string) => {
-    const response = await api.post('/research', { query });
+export const research = async (query: string, apiKey?: string) => {
+    const response = await api.post('/research', { query }, getConfig(apiKey));
     return response.data;
 };
 

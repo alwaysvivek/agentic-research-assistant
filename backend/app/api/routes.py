@@ -1,8 +1,8 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Request
+from fastapi import APIRouter, HTTPException, UploadFile, File, Request, Header
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from app.models.api_models import IngestRequest, IngestResponse, ResearchRequest, ResearchResponse, IngestTextRequest
-from app.services.researcher import load_data, split_text, index_documents, run_research, index_text
+from app.services.researcher import load_data, split_text, index_documents, run_research, index_text, clear_database
 import shutil
 import os
 import traceback
@@ -19,14 +19,16 @@ router = APIRouter()
 
 @router.post("/ingest", response_model=IngestResponse)
 @limiter.limit("10/minute")
-async def ingest_endpoint(request: IngestRequest, req: Request):
+async def ingest_endpoint(request: Request, body: IngestRequest):
     """Ingest content from URL or PDF file path"""
     try:
+        # Local embeddings don't need API key for ingest
+        
         # Validate source
-        if not request.source or not request.source.strip():
+        if not body.source or not body.source.strip():
             raise HTTPException(status_code=400, detail="Source URL or file path is required")
         
-        source = request.source.strip()
+        source = body.source.strip()
         
         # Validate URL or file format
         if not (source.startswith("http://") or source.startswith("https://") or source.endswith(".pdf")):
@@ -36,6 +38,9 @@ async def ingest_endpoint(request: IngestRequest, req: Request):
             )
         
         logger.info(f"Ingesting from source: {source}")
+        
+        # 0. Clear previous data
+        clear_database()
         
         # 1. Load
         docs = load_data(source)
@@ -70,22 +75,27 @@ async def ingest_endpoint(request: IngestRequest, req: Request):
 
 @router.post("/ingest/text", response_model=IngestResponse)
 @limiter.limit("10/minute")
-async def ingest_text_endpoint(request: IngestTextRequest, req: Request):
+async def ingest_text_endpoint(request: Request, body: IngestTextRequest):
     """Ingest raw text content"""
     try:
+        # Local embeddings don't need API key for ingest
+        
         # Validate text
-        if not request.text or not request.text.strip():
+        if not body.text or not body.text.strip():
             raise HTTPException(status_code=400, detail="Text content is required")
         
-        if len(request.text) > 100000:  # 100KB limit
+        if len(body.text) > 100000:  # 100KB limit
             raise HTTPException(
                 status_code=400,
                 detail="Text content too large. Maximum 100,000 characters allowed."
             )
         
-        logger.info(f"Ingesting raw text ({len(request.text)} characters)")
+        logger.info(f"Ingesting raw text ({len(body.text)} characters)")
         
-        index_text(request.text)
+        # 0. Clear previous data
+        clear_database()
+        
+        index_text(body.text)
         
         return IngestResponse(
             status="success",
@@ -104,10 +114,12 @@ async def ingest_text_endpoint(request: IngestTextRequest, req: Request):
 
 @router.post("/ingest/file", response_model=IngestResponse)
 @limiter.limit("5/minute")
-async def ingest_file_endpoint(file: UploadFile = File(...), req: Request = None):
+async def ingest_file_endpoint(request: Request, file: UploadFile = File(...)):
     """Upload and ingest a PDF file"""
     temp_path = None
     try:
+        # Local embeddings don't need API key for ingest
+        
         # Validate file
         if not file.filename:
             raise HTTPException(status_code=400, detail="No file provided")
@@ -130,6 +142,9 @@ async def ingest_file_endpoint(file: UploadFile = File(...), req: Request = None
             )
         
         logger.info(f"Uploading file: {file.filename} ({file_size} bytes)")
+        
+        # 0. Clear previous data
+        clear_database()
         
         # Save temp file
         temp_dir = "temp_uploads"
@@ -176,14 +191,17 @@ async def ingest_file_endpoint(file: UploadFile = File(...), req: Request = None
 
 @router.post("/research", response_model=ResearchResponse)
 @limiter.limit("10/minute")
-async def research_endpoint(request: ResearchRequest, req: Request):
+async def research_endpoint(request: Request, body: ResearchRequest, x_groq_api_key: str = Header(None)):
     """Research a query using the agentic RAG workflow"""
     try:
+        if not x_groq_api_key:
+             raise HTTPException(status_code=401, detail="Missing x-groq-api-key header")
+
         # Validate query
-        if not request.query or not request.query.strip():
+        if not body.query or not body.query.strip():
             raise HTTPException(status_code=400, detail="Query is required")
         
-        query = request.query.strip()
+        query = body.query.strip()
         
         if len(query) > 1000:
             raise HTTPException(
@@ -194,7 +212,7 @@ async def research_endpoint(request: ResearchRequest, req: Request):
         logger.info(f"Research query: {query[:100]}...")
         
         # Run LangGraph workflow
-        result = run_research(query)
+        result = run_research(query, x_groq_api_key)
         answer_obj = result.get("answer")
         
         if not answer_obj:

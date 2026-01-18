@@ -53,6 +53,11 @@ async def health_check(request: Request):
 # Serve static frontend files in production
 if ENVIRONMENT == "production" and os.path.exists("frontend/dist"):
     app.mount("/assets", StaticFiles(directory="frontend/dist/assets"), name="assets")
+
+    @app.get("/")
+    async def serve_root():
+        """Serve index.html at root"""
+        return FileResponse("frontend/dist/index.html")
     
     @app.get("/{full_path:path}")
     async def serve_frontend(full_path: str):

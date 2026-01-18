@@ -1,11 +1,13 @@
 import os
 import lancedb
+import shutil
 from typing import List, TypedDict, Optional
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from langchain_community.document_loaders import PyPDFLoader, WebBaseLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_groq import ChatGroq
 from langchain_core.documents import Document
 from langchain_core.prompts import ChatPromptTemplate
 from langgraph.graph import StateGraph, END
@@ -16,8 +18,8 @@ load_dotenv()
 # --- Configuration & Setup ---
 # We use an absolute path or relative to the running container/app for data
 DB_URI = os.path.join(os.getcwd(), "data/lancedb")
-EMBEDDING_MODEL = "models/text-embedding-004"
-LLM_MODEL = "gemini-flash-latest"
+EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+LLM_MODEL = "llama3-70b-8192"
 
 class Answer(BaseModel):
     answer: str = Field(description="The answer to the user's question.")
@@ -29,6 +31,7 @@ class ResearchState(TypedDict):
     documents: List[Document]
     answer: Optional[Answer]
     try_count: int
+    api_key: str
 
 # --- Ingestion ---
 def load_data(source: str) -> List[Document]:
@@ -58,14 +61,29 @@ def index_text(text: str):
     """Indexes raw text directly."""
     docs = [Document(page_content=text, metadata={"source": "raw_text"})]
     chunks = split_text(docs)
+    # Embedding is local now, so no API key needed for indexing
     return index_documents(chunks)
 
 # --- Vector Store (LanceDB) ---
+def clear_database():
+    """Clears the LanceDB data directory."""
+    if os.path.exists(DB_URI):
+        try:
+            shutil.rmtree(DB_URI)
+            os.makedirs(DB_URI, exist_ok=True)
+            print("Database cleared successfully.")
+        except Exception as e:
+            print(f"Error clearing database: {e}")
+
 def get_vector_store():
     # Ensure directory exists
     os.makedirs(DB_URI, exist_ok=True)
     db = lancedb.connect(DB_URI)
     return db
+
+def _get_embeddings():
+    # Local embeddings - no API key required
+    return HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
 
 def index_documents(chunks: List[Document]):
     """Indexes documents into LanceDB."""
@@ -75,8 +93,7 @@ def index_documents(chunks: List[Document]):
         source = chunk.metadata.get("source", "unknown")
         chunk.metadata = {"source": source}
 
-    # Ensure we use embeddings wrapper compatible with LangChain
-    embeddings = GoogleGenerativeAIEmbeddings(model=EMBEDDING_MODEL)
+    embeddings = _get_embeddings()
     from langchain_community.vectorstores import LanceDB
     
     vector_store = LanceDB.from_documents(
@@ -89,7 +106,7 @@ def index_documents(chunks: List[Document]):
 
 
 def get_retriever():
-    embeddings = GoogleGenerativeAIEmbeddings(model=EMBEDDING_MODEL)
+    embeddings = _get_embeddings()
     from langchain_community.vectorstores import LanceDB
     vector_store = LanceDB(
         uri=DB_URI,
@@ -102,12 +119,17 @@ def get_retriever():
 # --- Logic (Graph Nodes) ---
 def node_retrieve_and_generate(state: ResearchState):
     query = state["query"]
+    api_key = state.get("api_key")
     print(f"--- Retrieve & Generate for: {query} ---")
     
+    if not api_key:
+        raise ValueError("API Key is missing in state")
+
     retriever = get_retriever()
     docs = retriever.invoke(query)
     
-    llm = ChatGoogleGenerativeAI(model=LLM_MODEL, temperature=0)
+    # Use ChatGroq
+    llm = ChatGroq(model=LLM_MODEL, temperature=0, api_key=api_key)
     structured_llm = llm.with_structured_output(Answer)
     
     context_text = "\n\n".join([d.page_content for d in docs])
@@ -150,7 +172,7 @@ def build_graph():
     return builder.compile()
 
 # Helper for async execution if needed, but synchronous invoke is fine for first pass
-def run_research(query: str):
+def run_research(query: str, api_key: str):
     graph = build_graph()
-    result = graph.invoke({"query": query, "try_count": 0})
+    result = graph.invoke({"query": query, "try_count": 0, "api_key": api_key})
     return result
