@@ -65,27 +65,87 @@ Reliable Researcher is an AI application that combines **Retrieval-Augmented Gen
 
 ```mermaid
 graph TB
-    subgraph "Frontend"
-        UI[React UI]
+    %% Nodes
+    subgraph "Frontend (React + Vite)"
+        Client[Browser / User]
+        Store[LocalStorage (API Key)]
+        UI_Ingest[Ingest Component]
+        UI_Chat[Chat Interface]
     end
 
-    subgraph "Backend"
-        API[FastAPI]
-        AGENT[LangGraph Agent]
-        LANCEDB[(LanceDB Local)]
+    subgraph "Backend Service (FastAPI)"
+        API_Gateway[API Router / Rate Limiter]
+        
+        subgraph "Ingestion Pipeline"
+            Loader[Document Loaders<br>(PDF/Web/Text)]
+            Splitter[Text Splitter]
+            Embedder[HuggingFace Embeddings<br>(Local Model)]
+        end
+
+        subgraph "Agentic Core (LangGraph)"
+            Graph[StateGraph Controller]
+            Retrieve[Retrieve Node<br>(LanceDB Retriever)]
+            Generate[Generate Node<br>(ChatGroq + Prompts)]
+            Grade{Confidence Check<br>(> 0.7 or Max Tries)}
+        end
     end
 
-    UI -->|HTTP + API Key| API
-    API -->|Query| AGENT
-    AGENT -->|Retrieve| LANCEDB
-    AGENT -->|Generate| GROQ[Groq API]
+    subgraph "Data Storage"
+        VectorDB[(LanceDB<br>Vector Store)]
+        FileSystem[Temp File Storage]
+    end
+
+    subgraph "External AI Services"
+        GroqAPI[Groq API<br>(Llama 3.3-70b)]
+    end
+
+    %% Flows - Frontend to Backend
+    Client --> UI_Ingest
+    Client --> UI_Chat
+    Store -.->|Inject API Key| UI_Chat
+    UI_Ingest -->|POST /ingest| API_Gateway
+    UI_Chat -->|POST /research| API_Gateway
+
+    %% Flows - Ingestion
+    API_Gateway -->|Source/File| Loader
+    Loader --> Splitter
+    Splitter --> Embedder
+    Embedder -->|Vectors| VectorDB
+    Loader -.->|Temp PDF| FileSystem
+
+    %% Flows - Research
+    API_Gateway -->|Query + Key| Graph
+    Graph --> Retrieve
+    Retrieve -->|Query| VectorDB
+    VectorDB -->|Context Chunks| Retrieve
+    Retrieve --> Generate
+    Generate -->|Context + Query| GroqAPI
+    GroqAPI -->|Answer + Confidence| Generate
+    Generate --> Grade
+    Grade -->|Retry (Target < 0.7)| Retrieve
+    Grade -->|Success (Target > 0.7)| API_Gateway
+
+    %% Styling
+    classDef frontend fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    classDef backend fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
+    classDef data fill:#fff3e0,stroke:#ef6c00,stroke-width:2px;
+    classDef ai fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
+    
+    class Client,Store,UI_Ingest,UI_Chat frontend;
+    class API_Gateway,Loader,Splitter,Embedder,Graph,Retrieve,Generate,Grade backend;
+    class VectorDB,FileSystem data;
+    class GroqAPI ai;
 ```
 
 ## 🛠️ Tech Stack
 
-- **Backend**: FastAPI, LangGraph, LanceDB, LangChain
-- **Frontend**: React, TypeScript, Tailwind CSS, Lucide Icons
-- **Infrastructure**: Docker Compose
+- **Backend Framework**: Python (FastAPI)
+- **Agentic AI**: LangGraph (State Control), LangChain (Orchestration)
+- **LLM Provider**: Groq API (Llama 3.3-70b-versatile)
+- **Vector Database**: LanceDB (Serverless High-Performance Vector Store)
+- **Embeddings**: HuggingFace (Local Execution, no API cost)
+- **Frontend**: React 19, TypeScript, Vite, Tailwind CSS
+- **Infrastructure**: Docker & Docker Compose
 
 ## 📝 License
 
