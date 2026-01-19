@@ -1,55 +1,7 @@
-# Git
-.git
-.gitignore
-
-# Python
-__pycache__
-*.pyc
-*.pyo
-*.pyd
-.Python
-*.so
-*.egg
-*.egg-info
-dist
-build
-.pytest_cache
-.coverage
-htmlcov
-
-# Virtual environments
-venv
-env
-ENV
-.venv
-
-# Node
-node_modules
-npm-debug.log
-yarn-error.log
-
-# IDE
-.vscode
-.idea
-*.swp
-*.swo
-.DS_Store
-
-# Environment
-.env
-.env.local
-
-# Data
-data/lancedb
-temp_uploads
-knowledge_base
-
-# Frontend build (will be built in Docker)
-frontend/dist
-
-# Documentation
-*.md
-!README.md
-
-# Course archive
-course_archive
+**/node_modules
+**/dist
+**/.git
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.DS_Store

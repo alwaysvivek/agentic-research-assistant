@@ -19,7 +19,7 @@ load_dotenv()
 # We use an absolute path or relative to the running container/app for data
 DB_URI = os.path.join(os.getcwd(), "data/lancedb")
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
-LLM_MODEL = "llama3-70b-8192"
+LLM_MODEL = "llama-3.3-70b-versatile"
 
 class Answer(BaseModel):
     answer: str = Field(description="The answer to the user's question.")

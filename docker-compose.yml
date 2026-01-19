@@ -3,28 +3,25 @@ version: '3.8'
 services:
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile.dev
+      context: .
+      dockerfile: backend/Dockerfile
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/app
       - ./data:/app/data
     environment:
-      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       - FRONTEND_URL=http://localhost:5173
-      - ENVIRONMENT=development
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      - ENVIRONMENT=production
+    restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     ports:
       - "5173:5173"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
     environment:
       - VITE_API_URL=http://localhost:8000
-    command: npm run dev -- --host
+    depends_on:
+      - backend
+    restart: unless-stopped
