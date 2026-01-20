@@ -122,8 +122,8 @@ graph TB
     Generate -->|Context + Query| GroqAPI
     GroqAPI -->|Answer + Confidence| Generate
     Generate --> Grade
-    Grade -->|Retry (Target < 0.7)| Retrieve
-    Grade -->|Success (Target > 0.7)| API_Gateway
+    Grade -->|"Retry (Target < 0.7)"| Retrieve
+    Grade -->|"Success (Target > 0.7)"| API_Gateway
 
     %% Styling
     classDef frontend fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
