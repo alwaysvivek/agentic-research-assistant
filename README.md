@@ -67,8 +67,8 @@ Reliable Researcher is an AI application that combines **Retrieval-Augmented Gen
 graph TB
     %% Nodes
     subgraph "Frontend (React + Vite)"
-        Client[Browser / User]
-        Store[LocalStorage (API Key)]
+        Client["Browser / User"]
+        Store["LocalStorage (API Key)"]
         UI_Ingest[Ingest Component]
         UI_Chat[Chat Interface]
     end
@@ -77,26 +77,26 @@ graph TB
         API_Gateway[API Router / Rate Limiter]
         
         subgraph "Ingestion Pipeline"
-            Loader[Document Loaders<br>(PDF/Web/Text)]
+            Loader["Document Loaders<br>(PDF/Web/Text)"]
             Splitter[Text Splitter]
-            Embedder[HuggingFace Embeddings<br>(Local Model)]
+            Embedder["HuggingFace Embeddings<br>(Local Model)"]
         end
 
         subgraph "Agentic Core (LangGraph)"
             Graph[StateGraph Controller]
-            Retrieve[Retrieve Node<br>(LanceDB Retriever)]
-            Generate[Generate Node<br>(ChatGroq + Prompts)]
-            Grade{Confidence Check<br>(> 0.7 or Max Tries)}
+            Retrieve["Retrieve Node<br>(LanceDB Retriever)"]
+            Generate["Generate Node<br>(ChatGroq + Prompts)"]
+            Grade{"Confidence Check<br>(> 0.7 or Max Tries)"}
         end
     end
 
     subgraph "Data Storage"
-        VectorDB[(LanceDB<br>Vector Store)]
+        VectorDB[("LanceDB<br>Vector Store")]
         FileSystem[Temp File Storage]
     end
 
     subgraph "External AI Services"
-        GroqAPI[Groq API<br>(Llama 3.3-70b)]
+        GroqAPI["Groq API<br>(Llama 3.3-70b)"]
     end
 
     %% Flows - Frontend to Backend
